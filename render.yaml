@@ -1,0 +1,40 @@
+services:
+  # ─── Frontend (React + Vite → Nginx) ────────────────────────────────────────
+  - type: web
+    name: careerfit-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false   # Set manually in Render dashboard: https://your-backend.onrender.com/api
+
+  # ─── Backend (Node.js / Express) ────────────────────────────────────────────
+  - type: web
+    name: careerfit-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false   # Set manually: mongodb+srv://...
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_SERVICE_URL
+        sync: false   # Set manually: https://careerfit-ai-service.onrender.com
+
+  # ─── AI Service (Python / FastAPI) ──────────────────────────────────────────
+  - type: web
+    name: careerfit-ai-service
+    runtime: docker
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: GEMINI_API_KEY
+        sync: false   # Set manually in Render dashboard
