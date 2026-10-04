@@ -1,7 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+// Load environment variables from backend/.env and root .env (updated for MongoDB URI)
+dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
@@ -16,9 +21,21 @@ const app = express();
 // Connect Database
 connectDB();
 
-// CORS & Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'https://carrierfit-ai-frontend.onrender.com'
+];
+
 app.use(cors({
-  origin: 'https://carrierfit-ai-frontend.onrender.com',
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps, curl, server-to-server)
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

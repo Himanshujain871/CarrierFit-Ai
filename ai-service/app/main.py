@@ -10,7 +10,7 @@ from app.schemas import (
 from app.parsers.pdf_parser import extract_text_from_pdf_bytes, detect_sections
 from app.parsers.docx_parser import extract_text_from_docx_bytes
 from app.nlp.matcher import calculate_job_match
-from app.nlp.llm_engine import improve_resume_llm, generate_interview_questions_heuristic
+from app.nlp.llm_engine import improve_resume_llm, generate_interview_questions_llm
 
 app = FastAPI(
     title="CareerFit AI Service",
@@ -124,7 +124,7 @@ async def generate_interview_prep(req: InterviewPrepRequest):
     if not req.resume_text or not req.job_description:
         raise HTTPException(status_code=400, detail="Both resume_text and job_description are required.")
 
-    questions = generate_interview_questions_heuristic(req.resume_text, req.job_description, req.job_title or "Target Position")
+    questions = generate_interview_questions_llm(req.resume_text, req.job_description, req.job_title or "Target Position")
 
     return InterviewPrepResponse(
         success=True,

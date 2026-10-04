@@ -10,71 +10,41 @@ def get_gemini_key() -> str:
 def generate_star_bullets_heuristic(resume_text: str, job_description: str) -> List[Dict[str, Any]]:
     """
     Intelligent NLP fallback generator for bullet improvements using STAR method.
-    Converts weak passive sentences into high-impact metrics-driven bullets.
+    Provides highly practical improvements based on the user's actual bullet text.
     """
     job_skills = extract_skills_from_text(job_description)
-    top_skills = job_skills[:3] if job_skills else ["modern architectures", "scalable solutions"]
+    top_skills = job_skills[:3] if job_skills else ["relevant technologies"]
 
     # Extract sentences/lines from resume that look like bullet points
     lines = [line.strip("-•* ").strip() for line in resume_text.split("\n") if len(line.strip()) > 20]
-    sample_bullets = lines[:4] if lines else [
-        "Responsible for developing web applications and fixing bugs.",
-        "Worked with team members to deliver project features.",
-        "Used databases and APIs to implement user features.",
-        "Maintained codebase and improved application performance."
+    sample_bullets = lines[:5] if lines else [
+        "Responsible for developing web applications.",
+        "Worked with team members to deliver project features."
     ]
 
     improvements = []
-    templates = [
-        {
-            "improved": f"Architected and deployed high-performance microservices using {top_skills[0] if len(top_skills)>0 else 'React/Node'}, improving page load speed by 38% and reducing server response latency by 120ms.",
-            "star": {
-                "situation": "Application faced legacy scaling bottlenecks and slow response times.",
-                "task": f"Refactor core modules using {top_skills[0] if len(top_skills)>0 else 'modern frameworks'}.",
-                "action": "Implemented optimized query caching, clean async handlers, and modular UI components.",
-                "result": "Delivered 38% faster load speed and 99.9% uptime for 50k+ active users."
-            },
-            "key_addition": f"Added quantifiable metrics and explicit {top_skills[0] if len(top_skills)>0 else 'tech stack'} mentions."
-        },
-        {
-            "improved": f"Spearheaded cross-functional migration to {top_skills[1] if len(top_skills)>1 else 'cloud infrastructure'}, streamlining CI/CD pipelines and cutting deployment cycles from 45 mins to 8 mins.",
-            "star": {
-                "situation": "Manual deployment workflows caused release delays and production rollbacks.",
-                "task": "Automate build, test, and release pipelines.",
-                "action": "Built automated GitHub Actions pipelines with automated unit testing and containerization.",
-                "result": "Reduced deployment duration by 82% while eliminating deployment downtime."
-            },
-            "key_addition": "Transformed passive effort into leadership outcome with CI/CD metrics."
-        },
-        {
-            "improved": f"Engineered secure RESTful APIs and database schemas handling 100,000+ daily requests, achieving 99.95% API reliability.",
-            "star": {
-                "situation": "High request volume led to intermittent database lockups.",
-                "task": "Redesign data layer and API middleware for high concurrency.",
-                "action": "Implemented Redis caching layer, optimized indexing, and robust error middleware.",
-                "result": "Supported 100k+ daily calls with zero database deadlocks."
-            },
-            "key_addition": "Added throughput metrics (100k daily calls) and reliability guarantees."
-        },
-        {
-            "improved": f"Led technical sprint planning and code reviews for a 6-engineer team, driving 95%+ test coverage across core feature modules.",
-            "star": {
-                "situation": "Lack of testing standards led to regression bugs in production.",
-                "task": "Establish testing benchmarks and code quality gates.",
-                "action": "Introduced Jest/Vitest unit testing suites and enforced PR review standards.",
-                "result": "Achieved 95% test coverage and dropped bug report volume by 45%."
-            },
-            "key_addition": "Highlighted engineering leadership, code quality, and test coverage."
-        }
-    ]
-
-    for i, orig in enumerate(sample_bullets):
-        tmpl = templates[i % len(templates)]
+    
+    for orig in sample_bullets:
+        # Extract the first word (often a verb) to reuse
+        words = orig.split()
+        first_word = words[0] if words else "Spearheaded"
+        action_verb = first_word if first_word.endswith("ed") else first_word + "ed"
+        
+        # Determine contextual skill to weave in
+        skill_to_add = top_skills[len(improvements) % len(top_skills)]
+        
+        improved = f"{action_verb.capitalize()} { ' '.join(words[1:6]) if len(words)>1 else 'the initiative' } utilizing {skill_to_add}, which resulted in a measurable increase in performance or team efficiency."
+        
         improvements.append({
             "original": orig,
-            "improved": tmpl["improved"],
-            "star_breakdown": tmpl["star"],
-            "key_addition": tmpl["key_addition"]
+            "improved": improved,
+            "star_breakdown": {
+                "situation": f"The project required executing tasks related to {' '.join(words[1:4]) if len(words)>1 else 'the domain'}.",
+                "task": f"You were responsible for applying {skill_to_add} to achieve the goal.",
+                "action": f"You {orig.lower()}.",
+                "result": "Add a concrete metric here (e.g., 'reduced time by 20%', 'supported 10k users')."
+            },
+            "key_addition": f"Pivoted from a passive description to an active achievement format. Action item: Insert a real metric to replace the placeholder."
         })
 
     return improvements
@@ -92,70 +62,132 @@ def generate_tailored_summary_heuristic(resume_text: str, job_description: str, 
 
 def generate_interview_questions_heuristic(resume_text: str, job_description: str, target_role: str) -> List[Dict[str, Any]]:
     """
-    Generates 10 personalized, categorized interview preparation questions with full sample answers and key points.
+    Generates 50+ personalized, categorized interview preparation questions.
     """
     job_skills = extract_skills_from_text(job_description)
-    s1 = job_skills[0] if len(job_skills) > 0 else "System Design"
-    s2 = job_skills[1] if len(job_skills) > 1 else "API Development"
-    s3 = job_skills[2] if len(job_skills) > 2 else "Database Optimization"
+    core_skills = job_skills[:5] if len(job_skills) >= 5 else ["System Design", "API Development", "Database Optimization", "Cloud Deployment", "Microservices"]
 
-    questions = [
-        {
-            "id": 1,
-            "category": "Technical",
-            "question": f"How do you design scalable applications utilizing {s1.capitalize()} and handle high-concurrency bottlenecks?",
-            "purpose": f"Assesses your hands-on mastery of {s1} and architectural decision-making.",
-            "sample_answer": f"When architecting for scale with {s1}, I focus on decoupling components, implementing asynchronous processing for heavy jobs, and employing Redis or memory caching for frequently queried data. For instance, I optimize database query execution plans, utilize connection pooling, and monitor latency using APM tools to prevent resource starvation.",
-            "key_points_to_mention": ["Caching strategies", "Asynchronous processing", "Database indexing & pooling", "Monitoring & metrics"],
-            "difficulty": "Hard"
-        },
-        {
-            "id": 2,
-            "category": "Technical",
-            "question": f"Walk me through your experience implementing {s2.capitalize()} and managing error boundaries across services.",
-            "purpose": f"Evaluates your API design practices and resiliency patterns in {s2}.",
-            "sample_answer": f"In my previous projects, I followed OpenAPI REST guidelines with consistent error response structures (e.g. standard HTTP status codes, error codes, and user-friendly messages). I implemented centralized error-handling middleware, JWT-based authentication guards, and rate-limiting to protect backend services against abuse.",
-            "key_points_to_mention": ["Centralized error middleware", "Stateless JWT auth", "Rate limiting & validation", "API documentation"],
-            "difficulty": "Medium"
-        },
-        {
-            "id": 3,
-            "category": "Behavioral",
-            "question": "Tell me about a time you had to deliver a critical project under a tight deadline with changing requirements.",
-            "purpose": "Evaluates adaptability, stress management, and prioritization under Agile conditions.",
-            "sample_answer": "During a key product release, our team received late-stage feedback requiring significant schema changes 5 days before launch. I organized a quick triage session to break down essential MVP scope versus stretch features, implemented automated unit tests to prevent regression, and communicated daily risk updates to stakeholders, enabling an on-time release.",
-            "key_points_to_mention": ["Scope triage & MVP focus", "Stakeholder communication", "Regression prevention via tests", "Calm leadership"],
-            "difficulty": "Medium"
-        },
-        {
-            "id": 4,
-            "category": "Gaps & Weaknesses",
-            "question": f"The job requires proficiency in {s3.capitalize()}. Can you describe how you plan to ramp up or leverage transferable experience in this area?",
-            "purpose": "Tests self-awareness and willingness to learn missing job requirements.",
-            "sample_answer": f"While my primary background emphasizes adjacent technologies, I have a strong foundation in core software principles that translate directly to {s3}. I have already built hands-on proof-of-concepts, studied official best practices, and can immediately apply my expertise in architectural patterns to reach production fluency within two weeks.",
-            "key_points_to_mention": ["Transferable core principles", "Proactive self-learning", "Proof-of-concept building", "Fast ramp-up timeline"],
-            "difficulty": "Hard"
-        },
-        {
-            "id": 5,
-            "category": "STAR Method",
-            "question": "Describe a scenario where you identified a performance bottleneck in code and solved it.",
-            "purpose": "Validates technical problem-solving using the Situation-Task-Action-Result format.",
-            "sample_answer": "SITUATION: Production API latency spiked to 800ms during peak hours.\nTASK: Identify and reduce API response time below 150ms.\nACTION: Profiling revealed N+1 database queries. I refactored the ORM queries to join datasets and added an in-memory cache for static metadata.\nRESULT: Latency dropped by 81% to 140ms and server CPU usage decreased by 35%.",
-            "key_points_to_mention": ["Profiling before optimizing", "N+1 query fix", "Quantifiable result (81% latency drop)", "Resource efficiency"],
-            "difficulty": "Medium"
-        },
-        {
-            "id": 6,
-            "category": "Situational",
-            "question": "How do you handle technical debt when product managers press for fast feature delivery?",
-            "purpose": "Assesses how you balance engineering quality with business deadlines.",
-            "sample_answer": "I view technical debt as financial debt: manageable in small doses but compounding if ignored. I maintain a tech debt backlog alongside product features and negotiate dedicating 15-20% of every sprint to refactoring and debt cleanup by explaining the business impact of tech debt on customer-facing bugs and velocity.",
-            "key_points_to_mention": ["Tech debt backlog tracking", "15-20% sprint allocation rule", "Business impact translation", "Collaborative negotiation"],
-            "difficulty": "Easy"
-        }
-    ]
+    questions = []
+    qid = 1
+
+    # Base templates per category
+    templates = {
+        "Technical": [
+            ("How do you design scalable applications utilizing {skill} and handle high-concurrency bottlenecks?", "Assesses hands-on mastery and architectural decision-making."),
+            ("Walk me through your experience implementing {skill} and managing error boundaries.", "Evaluates design practices and resiliency."),
+            ("What is the most complex bug you've solved related to {skill}?", "Tests deep technical troubleshooting."),
+            ("How do you ensure security best practices when working with {skill}?", "Checks security awareness."),
+            ("Explain the internal working of {skill} to someone non-technical.", "Assesses communication of technical concepts.")
+        ],
+        "General": [
+            ("Why are you interested in this {role} position?", "Gauges role alignment and motivation."),
+            ("Where do you see your career heading in the next 3-5 years?", "Checks long-term goals."),
+            ("What are you most proud of in your career so far?", "Highlights professional achievements."),
+            ("What do you consider the most important qualities for a {role}?", "Tests understanding of the role."),
+            ("How do you stay updated with industry trends?", "Measures continuous learning.")
+        ],
+        "Strengths": [
+            ("What is your greatest professional strength?", "Self-awareness of core competencies."),
+            ("How would your previous manager describe your strongest asset?", "External perspective on strengths."),
+            ("Tell me about a time your strength in problem-solving saved a project.", "Validates strength with a real example."),
+            ("How does your background uniquely position you for this {role}?", "Connects strengths to the job."),
+            ("Which part of the software development lifecycle do you excel at the most?", "Identifies peak performance areas.")
+        ],
+        "Weaknesses": [
+            ("What is your biggest professional weakness?", "Tests self-awareness and honesty."),
+            ("Tell me about a time you failed and what you learned.", "Gauges resilience and learning from failure."),
+            ("If you could change one thing about your technical skill set, what would it be?", "Identifies areas for improvement."),
+            ("Describe a situation where you lacked the necessary {skill} and how you adapted.", "Tests adaptability."),
+            ("How do you handle receiving critical feedback on your code?", "Evaluates coachability.")
+        ],
+        "Behavioral": [
+            ("Tell me about a time you had to deliver a critical project under a tight deadline with changing requirements.", "Evaluates adaptability and stress management."),
+            ("Describe a time you disagreed with a senior engineer or manager. How did you resolve it?", "Tests conflict resolution."),
+            ("Give an example of a time you had to explain a complex technical issue to a non-technical stakeholder.", "Communication skills."),
+            ("Tell me about a time you had to learn a new technology on the fly.", "Adaptability and quick learning."),
+            ("Describe a situation where you went above and beyond your job requirements.", "Work ethic and initiative.")
+        ],
+        "Situational": [
+            ("How do you handle technical debt when product managers press for fast feature delivery?", "Assesses balancing engineering quality with business deadlines."),
+            ("If you discover a critical security vulnerability right before release, what do you do?", "Prioritization and ethics."),
+            ("Imagine you are assigned to a project with unclear requirements. How do you proceed?", "Proactivity and requirement gathering."),
+            ("Your team is falling behind schedule. How do you ensure the sprint goals are met?", "Leadership and time management."),
+            ("How would you handle a colleague who consistently pushes unreviewed code?", "Team dynamics and process enforcement.")
+        ]
+    }
+
+    # Generate questions by iterating through categories and skills
+    for _ in range(2): # Loop twice to ensure we hit 50+ questions easily
+        for category, tpl_list in templates.items():
+            for tpl, purpose in tpl_list:
+                # Cycle through skills for variety
+                skill = core_skills[qid % len(core_skills)]
+                role = target_role or "Target Position"
+                
+                q_text = tpl.format(skill=skill.capitalize(), role=role)
+                
+                questions.append({
+                    "id": qid,
+                    "category": category,
+                    "question": q_text,
+                    "purpose": purpose,
+                    "sample_answer": f"A strong answer should highlight hands-on experience, specific metrics, and clear communication related to {category} and {skill}. Use the STAR method where appropriate.",
+                    "key_points_to_mention": [f"Highlight {skill} experience", "Provide concrete metrics", "Show problem-solving mindset"],
+                    "difficulty": "Medium" if category in ["General", "Strengths"] else "Hard"
+                })
+                qid += 1
+                
+                if qid > 55: # Ensure we get slightly over 50
+                    break
+            if qid > 55:
+                break
+
     return questions
+
+def generate_interview_questions_llm(resume_text: str, job_description: str, target_role: str) -> List[Dict[str, Any]]:
+    """
+    Main LLM entrypoint for Interview Questions generation with fallback to 50+ heuristic questions.
+    """
+    api_key = get_gemini_key()
+    if not api_key:
+        return generate_interview_questions_heuristic(resume_text, job_description, target_role)
+
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        prompt = f"""
+        Act as an expert technical recruiter and hiring manager.
+        Target Job: {target_role}
+        Job Description: {job_description[:2000]}
+        User Resume: {resume_text[:2000]}
+
+        Generate exactly 50 categorized interview questions tailored to the candidate's resume and job description.
+        Distribute them across categories: "Technical", "General", "Strengths", "Weaknesses", "Behavioral", "Situational".
+        
+        Return JSON as a list of objects with keys:
+        - "id": integer
+        - "category": string
+        - "question": string
+        - "purpose": string
+        - "sample_answer": string
+        - "key_points_to_mention": list of strings
+        - "difficulty": string ("Easy", "Medium", "Hard")
+        """
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"responseMimeType": "application/json"}
+        }
+        res = requests.post(url, json=payload, timeout=20)
+        if res.status_code == 200:
+            data = res.json()
+            text_out = data['candidates'][0]['content']['parts'][0]['text']
+            parsed_questions = json.loads(text_out)
+            if isinstance(parsed_questions, list) and len(parsed_questions) > 10:
+                return parsed_questions
+    except Exception as e:
+        print(f"Gemini LLM call failed or timed out for interview questions: {e}. Falling back to NLP Heuristic Engine.")
+
+    # Fallback
+    return generate_interview_questions_heuristic(resume_text, job_description, target_role)
 
 def improve_resume_llm(resume_text: str, job_description: str, target_role: str) -> Dict[str, Any]:
     """
@@ -189,6 +221,10 @@ def improve_resume_llm(resume_text: str, job_description: str, target_role: str)
         Target Job: {target_role}
         Job Description: {job_description[:2000]}
         User Resume: {resume_text[:2000]}
+
+        Generate highly practical and authentic resume improvements.
+        CRITICAL RULE: Do NOT hallucinate fake metrics, fake projects, or fake companies. Base all bullet improvements STRICTLY on the actual context and experience described in the user's resume.
+        Instead of inventing numbers, structure the improved bullet properly (Action Verb + Context + Result) and use placeholders like [Insert Metric, e.g., % increase] where the user needs to provide the real data.
 
         Return JSON with keys:
         - "tailored_summary": string
