@@ -170,7 +170,7 @@ const getUserAnalyses = async (req, res) => {
   }
 };
 
-// @desc Get single analysis detail
+// @desc Get single analysis detail (with joined interview prep)
 // @route GET /api/analysis/:id
 const getAnalysisById = async (req, res) => {
   try {
@@ -182,7 +182,21 @@ const getAnalysisById = async (req, res) => {
         if (memMatch) return res.json({ success: true, data: memMatch });
         return res.status(404).json({ success: false, message: 'Analysis not found' });
       }
-      return res.json({ success: true, data: analysis });
+
+      // Fetch the linked InterviewPrep to attach questions
+      let interviewPrep = null;
+      try {
+        interviewPrep = await InterviewPrep.findOne({ analysisId: analysis._id });
+      } catch (prepErr) {
+        console.warn('Could not fetch interview prep for analysis:', prepErr.message);
+      }
+
+      const responseData = analysis.toObject();
+      responseData.interviewPrep = interviewPrep
+        ? { questions: interviewPrep.questions, jobTitle: interviewPrep.jobTitle }
+        : { questions: [] };
+
+      return res.json({ success: true, data: responseData });
     } catch (dbErr) {
       const memMatch = memoryAnalyses.find((a) => a._id === id);
       if (memMatch) return res.json({ success: true, data: memMatch });

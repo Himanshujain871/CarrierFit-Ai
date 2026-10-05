@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard';
 import ResumeAnalyzer from './pages/ResumeAnalyzer';
 import ResumeImprover from './pages/ResumeImprover';
 import InterviewPrep from './pages/InterviewPrep';
+import MockInterviewRoom from './pages/MockInterviewRoom';
+import ResumeGenerator from './pages/ResumeGenerator';
 
 // Protected Route Guard
 const ProtectedRoute = ({ children }) => {
@@ -53,6 +55,14 @@ export default function App() {
             }
           />
           <Route
+            path="/analyzer/:id"
+            element={
+              <ProtectedRoute>
+                <ResumeAnalyzer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/improver"
             element={
               <ProtectedRoute>
@@ -65,6 +75,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <InterviewPrep />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/interview/room/:id"
+            element={
+              <ProtectedRoute>
+                <MockInterviewRoom />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/generator/:id"
+            element={
+              <ProtectedRoute>
+                <ResumeGenerator />
               </ProtectedRoute>
             }
           />

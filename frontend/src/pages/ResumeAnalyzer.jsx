@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import API from '../services/api';
@@ -12,6 +13,8 @@ import {
 } from 'lucide-react';
 
 export default function ResumeAnalyzer() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [jobTitle, setJobTitle] = useState('Senior Full-Stack Engineer');
   const [jobDescription, setJobDescription] = useState(
@@ -55,6 +58,33 @@ B.S. in Computer Science | State University (2020)`;
 
     setResumeText(sample);
   };
+
+  useEffect(() => {
+    if (id) {
+      const fetchAnalysis = async () => {
+        setLoading(true);
+        try {
+          const res = await API.get('/analysis/' + id);
+          if (res.data.success) {
+            const data = res.data.data;
+            // Normalise into the same shape as the runAnalysis response so all resolvers work
+            setAnalysisResult({
+              success: true,
+              analysis: data,
+              interviewPrep: data.interviewPrep || { questions: [] },
+            });
+            setJobTitle(data.jobTitle || 'Target Position');
+          }
+        } catch (err) {
+          console.error('Failed to load analysis:', err);
+          setError('Failed to load analysis details. It might have been deleted.');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchAnalysis();
+    }
+  }, [id]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -121,7 +151,11 @@ B.S. in Computer Science | State University (2020)`;
   const criticalMissingList = missingSkillsObj?.critical || [];
   const recommendedMissingList = missingSkillsObj?.recommended || [];
   const bulletImprovementsList = analysisObj?.bulletImprovements || analysisObj?.bullet_improvements || [];
-  const interviewQuestionsList = analysisResult?.interviewPrep?.questions || analysisResult?.interviewPrep?.data?.questions || [];
+  // interviewPrep is attached at the top-level of the response (both run & getById)
+  const interviewQuestionsList =
+    analysisResult?.interviewPrep?.questions ||
+    analysisResult?.data?.interviewPrep?.questions ||
+    [];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -450,9 +484,17 @@ B.S. in Computer Science | State University (2020)`;
 
                   {/* Bullet Rewrites */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">
-                      STAR Method Bullet Point Optimizer
-                    </h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                        STAR Method Bullet Point Optimizer
+                      </h3>
+                      <button
+                        onClick={() => navigate(`/generator/${id}`)}
+                        className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+                      >
+                        <FileText className="w-4 h-4" /> Generate PDF Resume
+                      </button>
+                    </div>
                     <div className="space-y-4">
                       {bulletImprovementsList.map((item, idx) => (
                         <StarCard key={idx} item={item} index={idx} />
@@ -465,14 +507,22 @@ B.S. in Computer Science | State University (2020)`;
               {/* TAB 3: Interview Q&A Flashcards View */}
               {activeTab === 'interview' && (
                 <div className="space-y-6">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      <MessageSquare className="w-5 h-5 text-amber-400" />
-                      Personalized Interview Preparation Deck
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Tailored specifically to your resume background and the target {analysisObj.jobTitle || 'Target Position'} position.
-                    </p>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <div>
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5 text-amber-400" />
+                        Personalized Interview Preparation Deck
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Tailored specifically to your resume background and the target {analysisObj.jobTitle || 'Target Position'} position.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => navigate('/interview/room/' + id)}
+                      className="shrink-0 px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/20"
+                    >
+                      <MessageSquare className="w-4 h-4" /> Start Voice Interview
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

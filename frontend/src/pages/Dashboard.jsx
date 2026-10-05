@@ -145,7 +145,7 @@ export default function Dashboard() {
                         {item.matchScore}% Match
                       </span>
                       <Link
-                        to={`/analyzer`}
+                        to={`/analyzer/${item._id}`}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-all text-xs font-medium flex items-center gap-1"
                       >
                         View Analysis <ArrowRight className="w-3.5 h-3.5" />
