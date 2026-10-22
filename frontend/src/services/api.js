@@ -6,7 +6,10 @@ const isLocal =
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1';
 
-const BACKEND = isLocal ? '/api' : 'https://careerfit-backend.onrender.com/api';
+const configuredApiUrl = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '');
+const BACKEND = isLocal
+  ? '/api'
+  : configuredApiUrl || 'https://careerfit-backend.onrender.com/api';
 
 const API = axios.create({
   baseURL: BACKEND,
